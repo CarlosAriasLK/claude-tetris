@@ -19,6 +19,16 @@ body {
   position: relative;
 }
 
+.game-title {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: 10px;
+  color: #7aa2f7;
+  margin-bottom: 16px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
 .game-container {
   display: flex;
   gap: 20px;
