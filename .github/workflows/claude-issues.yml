@@ -1,0 +1,37 @@
+name: Claude — Issue Handler
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  claude-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code on issue
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            Se ha ${{ github.event.action == 'opened' && 'creado' || 'modificado' }} el issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}".
+
+            Analiza el issue y, según su contenido:
+            - Si describe un bug: identifica la causa probable en el código e implementa la corrección.
+            - Si describe una nueva funcionalidad: evalúa si es coherente con el proyecto y, de ser viable, impleméntala.
+            - Si es una pregunta o solicitud de aclaración: responde con un comentario en el issue.
+
+            Cuando hagas cambios en el código, abre un Pull Request con la solución y añade un comentario en el issue explicando lo que hiciste.
