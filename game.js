@@ -35,12 +35,14 @@ const nextCtx = nextCanvas.getContext('2d');
 const scoreEl = document.getElementById('score');
 const linesEl = document.getElementById('lines');
 const levelEl = document.getElementById('level');
+const freezeEl = document.getElementById('freeze-charges');
 const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let freezeCharges, freezeActive, freezeTimer;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -108,6 +110,7 @@ function clearLines() {
     score += (LINE_SCORES[cleared] || 0) * level;
     level = Math.floor(lines / 10) + 1;
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    if (cleared >= 2) freezeCharges++;
     updateHUD();
   }
 }
@@ -154,6 +157,7 @@ function updateHUD() {
   scoreEl.textContent = score.toLocaleString();
   linesEl.textContent = lines;
   levelEl.textContent = level;
+  freezeEl.textContent = freezeCharges;
 }
 
 function drawBlock(context, x, y, colorIndex, size, alpha) {
@@ -205,6 +209,12 @@ function draw() {
   for (let r = 0; r < current.shape.length; r++)
     for (let c = 0; c < current.shape[r].length; c++)
       drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK);
+
+  // freeze tint
+  if (freezeActive) {
+    ctx.fillStyle = 'rgba(100,200,255,0.07)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 }
 
 function drawNext() {
@@ -243,13 +253,22 @@ function togglePause() {
 function loop(ts) {
   const dt = ts - lastTime;
   lastTime = ts;
-  dropAccum += dt;
-  if (dropAccum >= dropInterval) {
-    dropAccum = 0;
-    if (!collide(current.shape, current.x, current.y + 1)) {
-      current.y++;
-    } else {
-      lockPiece();
+  if (freezeActive) {
+    freezeTimer -= dt;
+    if (freezeTimer <= 0) {
+      freezeActive = false;
+      freezeTimer = 0;
+      canvas.classList.remove('freeze-active');
+    }
+  } else {
+    dropAccum += dt;
+    if (dropAccum >= dropInterval) {
+      dropAccum = 0;
+      if (!collide(current.shape, current.x, current.y + 1)) {
+        current.y++;
+      } else {
+        lockPiece();
+      }
     }
   }
   draw();
@@ -265,6 +284,10 @@ function init() {
   gameOver = false;
   dropInterval = 1000;
   dropAccum = 0;
+  freezeCharges = 0;
+  freezeActive = false;
+  freezeTimer = 0;
+  canvas.classList.remove('freeze-active');
   lastTime = performance.now();
   next = randomPiece();
   spawn();
@@ -294,6 +317,16 @@ document.addEventListener('keydown', e => {
     case 'Space':
       e.preventDefault();
       hardDrop();
+      break;
+    case 'KeyG':
+      if (freezeCharges > 0 && !freezeActive) {
+        freezeCharges--;
+        freezeActive = true;
+        freezeTimer = 3000;
+        dropAccum = 0;
+        canvas.classList.add('freeze-active');
+        updateHUD();
+      }
       break;
   }
   updateHUD();

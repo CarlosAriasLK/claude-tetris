@@ -80,6 +80,22 @@ body {
   border-radius: 4px;
 }
 
+.freeze-value {
+  color: #4dd0e1;
+}
+
+.freeze-hint {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #444460;
+  font-weight: 500;
+}
+
+#board.freeze-active {
+  border-color: #4dd0e1;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), 0 0 16px rgba(77, 208, 225, 0.35);
+}
+
 /* ---- Controles ---- */
 .controls ul {
   list-style: none;
