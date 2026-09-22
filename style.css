@@ -174,7 +174,7 @@ kbd {
   color: #7aa2f7;
 }
 
-#restart-btn {
+.menu-btn {
   margin-top: 8px;
   background: #7aa2f7;
   color: #0f0f17;
@@ -188,6 +188,51 @@ kbd {
   transition: background 0.15s;
 }
 
-#restart-btn:hover {
+.menu-btn:hover {
   background: #9bbdff;
+}
+
+/* ---- Menú de pausa ---- */
+#pause-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: #7aa2f7;
+}
+
+.pause-box {
+  min-width: 220px;
+}
+
+.pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.pause-actions .menu-btn {
+  margin-top: 0;
+}
+
+#pause-controls.hidden {
+  display: none;
+}
+
+.pause-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+#start-level-select {
+  background: #22223a;
+  border: 1px solid #3a3a5a;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  padding: 6px 10px;
+  cursor: pointer;
 }
