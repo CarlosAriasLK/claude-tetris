@@ -95,7 +95,6 @@ const PIECES = [
 ];
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
-const START_LEVEL_KEY = 'tetris.startLevel';
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -110,17 +109,10 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const skinSelect = document.getElementById('skin-select');
-const pauseOverlay = document.getElementById('pause-overlay');
-const resumeBtn = document.getElementById('resume-btn');
-const pauseRestartBtn = document.getElementById('pause-restart-btn');
-const toggleControlsBtn = document.getElementById('toggle-controls-btn');
-const pauseControls = document.getElementById('pause-controls');
-const startLevelSelect = document.getElementById('start-level-select');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let freezeCharges, freezeActive, freezeTimer;
 let activeSkin;
-let startLevel;
 
 function loadSkin() {
   try {
@@ -145,29 +137,6 @@ function applySkin(skin) {
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
-}
-
-function loadStartLevel() {
-  try {
-    const parsed = parseInt(localStorage.getItem(START_LEVEL_KEY), 10);
-    if (parsed >= 1 && parsed <= 10) return parsed;
-  } catch (e) {}
-  return 1;
-}
-
-function saveStartLevel(value) {
-  try {
-    localStorage.setItem(START_LEVEL_KEY, String(value));
-  } catch (e) {}
-}
-
-function dropIntervalForLevel(lvl) {
-  return Math.max(100, 1000 - (lvl - 1) * 90);
-}
-
-function resetPauseMenuUI() {
-  pauseControls.classList.add('hidden');
-  toggleControlsBtn.textContent = 'Ver controles';
 }
 
 function randomPiece() {
@@ -230,8 +199,8 @@ function clearLines() {
   if (cleared) {
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
-    level = Math.max(startLevel, Math.floor(lines / 10) + 1);
-    dropInterval = dropIntervalForLevel(level);
+    level = Math.floor(lines / 10) + 1;
+    dropInterval = Math.max(100, 1000 - (level - 1) * 90);
     if (cleared >= 2) freezeCharges++;
     updateHUD();
   }
@@ -369,27 +338,18 @@ function endGame() {
   overlay.classList.remove('hidden');
 }
 
-function openPauseMenu() {
-  if (gameOver || paused) return;
-  paused = true;
-  cancelAnimationFrame(animId);
-  resetPauseMenuUI();
-  startLevelSelect.value = String(loadStartLevel());
-  pauseOverlay.classList.remove('hidden');
-}
-
-function closePauseMenu() {
-  if (!paused) return;
-  paused = false;
-  pauseOverlay.classList.add('hidden');
-  lastTime = performance.now();
-  animId = requestAnimationFrame(loop);
-}
-
 function togglePause() {
   if (gameOver) return;
-  if (paused) closePauseMenu();
-  else openPauseMenu();
+  paused = !paused;
+  if (!paused) {
+    lastTime = performance.now();
+    loop(lastTime);
+  } else {
+    cancelAnimationFrame(animId);
+    overlayTitle.textContent = 'PAUSA';
+    overlayScore.textContent = '';
+    overlay.classList.remove('hidden');
+  }
 }
 
 function loop(ts) {
@@ -421,11 +381,10 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  startLevel = loadStartLevel();
-  level = startLevel;
+  level = 1;
   paused = false;
   gameOver = false;
-  dropInterval = dropIntervalForLevel(startLevel);
+  dropInterval = 1000;
   dropAccum = 0;
   freezeCharges = 0;
   freezeActive = false;
@@ -436,16 +395,12 @@ function init() {
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
-  pauseOverlay.classList.add('hidden');
-  resetPauseMenuUI();
-  startLevelSelect.value = String(startLevel);
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'Escape' && document.activeElement === startLevelSelect) return;
-  if (e.code === 'KeyP' || e.code === 'Escape') { togglePause(); return; }
+  if (e.code === 'KeyP') { togglePause(); return; }
   if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':
@@ -487,15 +442,6 @@ skinSelect.addEventListener('change', () => {
 });
 
 restartBtn.addEventListener('click', init);
-resumeBtn.addEventListener('click', closePauseMenu);
-pauseRestartBtn.addEventListener('click', init);
-toggleControlsBtn.addEventListener('click', () => {
-  const isHidden = pauseControls.classList.toggle('hidden');
-  toggleControlsBtn.textContent = isHidden ? 'Ver controles' : 'Ocultar controles';
-});
-startLevelSelect.addEventListener('change', () => {
-  saveStartLevel(parseInt(startLevelSelect.value, 10));
-});
 
 const initialSkin = loadSkin();
 skinSelect.value = initialSkin;
