@@ -358,7 +358,8 @@ kbd {
   cursor: default;
 }
 
-#reset-records-btn {
+#reset-records-btn,
+#overlay-reset-records-btn {
   background: transparent;
   color: #e57373;
   border: 1px solid #e57373;
@@ -371,6 +372,7 @@ kbd {
   transition: background 0.15s, color 0.15s;
 }
 
-#reset-records-btn:hover {
+#reset-records-btn:hover,
+#overlay-reset-records-btn:hover {
   background: rgba(229, 115, 115, 0.15);
 }

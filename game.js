@@ -132,6 +132,7 @@ const startBestCombo = document.getElementById('start-best-combo');
 const startMaxLines = document.getElementById('start-max-lines');
 const playBtn = document.getElementById('play-btn');
 const resetRecordsBtn = document.getElementById('reset-records-btn');
+const overlayResetRecordsBtn = document.getElementById('overlay-reset-records-btn');
 
 let board, current, next, score, lines, level, paused, gameOver = true, lastTime, dropAccum, dropInterval, animId;
 let freezeCharges, freezeActive, freezeTimer, combo, maxCombo;
@@ -625,14 +626,19 @@ playBtn.addEventListener('click', () => {
   init();
 });
 
-resetRecordsBtn.addEventListener('click', () => {
+function resetAllRecords() {
   if (!confirm('¿Seguro que quieres borrar todos los récords guardados?')) return;
   try {
     localStorage.removeItem(RECORDS_KEY);
     localStorage.removeItem(STATS_KEY);
   } catch {}
   refreshStartScreen();
-});
+  renderRecordsTable(overlayRecordsTable, [], -1);
+  renderStats(overlayBestCombo, overlayMaxLines, loadStats());
+}
+
+resetRecordsBtn.addEventListener('click', resetAllRecords);
+overlayResetRecordsBtn.addEventListener('click', resetAllRecords);
 
 saveRecordBtn.addEventListener('click', () => {
   const name = nameInput.value.trim().slice(0, 12) || 'Jugador';
